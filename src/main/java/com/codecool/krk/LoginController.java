@@ -6,32 +6,21 @@ import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
 
 import java.io.*;
-import java.net.HttpCookie;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class LoginController implements HttpHandler {
 
-    UUID sessionId;
-    HttpCookie cookie = null;
+    private static Cookie cookie = new Cookie();
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
 
-        String cookieStr = httpExchange.getRequestHeaders().getFirst("Cookie");
+        cookie.handle(httpExchange);
 
-        if (cookieStr != null) {  // SessionCookie already exists
-            cookie = HttpCookie.parse(cookieStr).get(0);
-        } else {
-            sessionId = UUID.randomUUID();
-            cookie = new HttpCookie("SessionId", String.valueOf(sessionId));
-            httpExchange.getResponseHeaders().add("Set-cookie", "first=" + cookie.getValue() + "; Max-Age=300");
-        }
         String method = httpExchange.getRequestMethod();
 
-        // Send a form if it wasn't submitted yet.
         if(method.equals("GET")){
             String response = this.getLoginTemplate();
 
@@ -40,7 +29,7 @@ public class LoginController implements HttpHandler {
             os.write(response.getBytes());
             os.close();
         }
-        // If the form was submitted, retrieve it's content.
+
         if(method.equals("POST")){
             InputStreamReader isr = new InputStreamReader(httpExchange.getRequestBody(), "utf-8");
             BufferedReader br = new BufferedReader(isr);
@@ -55,16 +44,11 @@ public class LoginController implements HttpHandler {
         }
     }
 
-    /**
-     * web.LoginPage data is sent as a urlencoded string. Thus we have to parse this string to get data that we want.
-     * See: https://en.wikipedia.org/wiki/POST_(HTTP)
-     */
     private static Map<String, String> parseFormData(String formData) throws UnsupportedEncodingException {
         Map<String, String> map = new HashMap<>();
         String[] pairs = formData.split("&");
         for(String pair : pairs){
             String[] keyValue = pair.split("=");
-            // We have to decode the value because it's urlencoded. see: https://en.wikipedia.org/wiki/POST_(HTTP)#Use_for_submitting_web_forms
             String value = new URLDecoder().decode(keyValue[1], "UTF-8");
             map.put(keyValue[0], value);
         }
@@ -75,7 +59,6 @@ public class LoginController implements HttpHandler {
 
         JtwigTemplate template = JtwigTemplate.classpathTemplate("templates/login_Page.twig");
         JtwigModel model = JtwigModel.newModel();
-
         String response = template.render(model);
 
         return response;
@@ -95,7 +78,4 @@ public class LoginController implements HttpHandler {
             httpExchange.sendResponseHeaders(302,-1);
         }
     }
-
-
-
 }

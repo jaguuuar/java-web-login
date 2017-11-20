@@ -10,9 +10,6 @@ public class App {
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
         // set routes
-//        server.createContext("/hello", new Hello());
-//        server.createContext("/form", new Form());
-        server.createContext("/cookie", new Cookie());
         server.createContext("/static", new Static());
         server.createContext("/hello", new Hello());
         server.createContext("/login", new LoginController());
