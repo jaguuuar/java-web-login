@@ -1,5 +1,6 @@
 package com.codecool.krk;
 
+import com.codecool.krk.dao.SessionDAO;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.jtwig.JtwigModel;
@@ -19,29 +20,46 @@ public class LoginController implements HttpHandler {
 
         cookie.handle(httpExchange);
 
-        String method = httpExchange.getRequestMethod();
+        String cookieStr = httpExchange.getRequestHeaders().getFirst("Cookie");
+        if(cookieStr == null) {
+            httpExchange.getResponseHeaders().set("Location", "/login");
+            httpExchange.sendResponseHeaders(302, -1);
+        }
+        String sessionId = cookie.getSessionId(httpExchange);
+        SessionDAO sessionDAO = new SessionDAO();
+        Boolean isSession = sessionDAO.checkIsSession(sessionId);
 
-        if(method.equals("GET")){
-            String response = this.getLoginTemplate();
+        if(isSession == true) {
+            httpExchange.getResponseHeaders().set("Location", "/hello");
+            httpExchange.sendResponseHeaders(302,-1);
 
-            httpExchange.sendResponseHeaders(200, response.getBytes().length);
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+        } else {
+
+            String method = httpExchange.getRequestMethod();
+
+            if(method.equals("GET")){
+                String response = this.getLoginTemplate();
+
+                httpExchange.sendResponseHeaders(200, response.getBytes().length);
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            }
+
+            if(method.equals("POST")){
+                InputStreamReader isr = new InputStreamReader(httpExchange.getRequestBody(), "utf-8");
+                BufferedReader br = new BufferedReader(isr);
+                String formData = br.readLine();
+
+                Map<String, String> inputs = parseFormData(formData);
+                String username = inputs.get("username");
+                String password = inputs.get("password");
+
+                this.loginHandle(httpExchange, username, password);
+
+            }
         }
 
-        if(method.equals("POST")){
-            InputStreamReader isr = new InputStreamReader(httpExchange.getRequestBody(), "utf-8");
-            BufferedReader br = new BufferedReader(isr);
-            String formData = br.readLine();
-
-            Map<String, String> inputs = parseFormData(formData);
-            String username = inputs.get("username");
-            String password = inputs.get("password");
-
-            this.loginHandle(httpExchange, username, password);
-
-        }
     }
 
     private static Map<String, String> parseFormData(String formData) throws UnsupportedEncodingException {
@@ -66,10 +84,11 @@ public class LoginController implements HttpHandler {
 
     public void loginHandle(HttpExchange httpExchange, String userName, String password) throws IOException {
 
-        String currentName = "admin";
-        String currentPassword = "admin";
+        if (password.equals(userName)) {
+            String sessionId = cookie.getSessionId(httpExchange);
+            Session session = new Session(userName, sessionId);
+            SessionDAO.sessions.add(session);
 
-        if (password.equals(currentPassword) && userName.equals(currentName)) {
             httpExchange.getResponseHeaders().set("Location", "/hello");
             httpExchange.sendResponseHeaders(302,-1);
 
