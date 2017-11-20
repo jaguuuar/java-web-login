@@ -20,8 +20,7 @@ public class Cookie implements HttpHandler {
             cookie = HttpCookie.parse(cookieStr).get(0);
 
         } else {
-            UUID sessionId;
-            sessionId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
             cookie = new HttpCookie("SessionId", String.valueOf(sessionId));
             httpExchange.getResponseHeaders().add("Set-cookie", "SessionCookie=" + cookie.getValue() + "; Max-Age=300");
         }
