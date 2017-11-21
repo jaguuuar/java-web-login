@@ -17,6 +17,8 @@ public class Hello implements HttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
 
+        cookie.checkIfCookieNull(httpExchange);
+
         String sessionId = cookie.getSessionId(httpExchange);
         SessionDAO sessionDAO = new SessionDAO();
         Boolean isSession = sessionDAO.checkIsSession(sessionId);

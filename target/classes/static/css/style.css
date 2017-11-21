@@ -79,3 +79,11 @@ input[type="submit"] {
     -moz-border-radius: 5px;
     border-radius: 5px;
 }
+
+#name {
+    margin: auto;
+    color: black;
+    text-align: center;
+    font-size: 200%;
+    font-family: cursive, Georgia, Serif;
+}

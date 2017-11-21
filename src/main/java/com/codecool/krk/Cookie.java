@@ -39,4 +39,12 @@ public class Cookie implements HttpHandler {
         cookie = HttpCookie.parse(cookieStr).get(0);
         httpExchange.getResponseHeaders().add("Set-cookie", "SessionCookie=" + cookie.getValue() + "; Max-Age=0; Path=/");
     }
+
+    public void checkIfCookieNull(HttpExchange httpExchange) throws IOException {
+        String cookieStr = httpExchange.getRequestHeaders().getFirst("Cookie");
+        if(cookieStr == null) {
+            httpExchange.getResponseHeaders().set("Location", "/login");
+            httpExchange.sendResponseHeaders(302, -1);
+        }
+    }
 }
