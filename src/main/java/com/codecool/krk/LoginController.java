@@ -21,12 +21,6 @@ public class LoginController implements HttpHandler {
         cookie.handle(httpExchange);
         cookie.checkIfCookieNull(httpExchange);
 
-//        String cookieStr = httpExchange.getRequestHeaders().getFirst("Cookie");
-//        if(cookieStr == null) {
-//            httpExchange.getResponseHeaders().set("Location", "/login");
-//            httpExchange.sendResponseHeaders(302, -1);
-//        }
-
         String sessionId = cookie.getSessionId(httpExchange);
         SessionDAO sessionDAO = new SessionDAO();
         Boolean isSession = sessionDAO.checkIsSession(sessionId);
